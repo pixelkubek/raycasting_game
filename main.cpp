@@ -4,6 +4,10 @@
 #include <random>
 #include <vector>
 
+float degreesToRadians(float degrees) {
+    return degrees * (float)M_PI / 180.f;
+}
+
 class Window {
     sf::RenderWindow* pRenderWindow;
     size_t LENGTH, HEIGHT;
@@ -85,7 +89,7 @@ class Window {
 };
 
 class Player {
-    float x, y, angle, speed = 0.1;
+    float x, y, angle, speed = 0.5f, angularSpeed = 5.f;
 
 public:
     float getX() { return x; }
@@ -100,7 +104,18 @@ public:
 
     void movement() {
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            
+            x += speed * cosf(degreesToRadians(angle));
+            y += speed * sinf(degreesToRadians(angle));
+        }
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+            x -= speed * cosf(degreesToRadians(angle));
+            y -= speed * sinf(degreesToRadians(angle));
+        }
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+            angle -= angularSpeed;
+        }
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+            angle += angularSpeed;
         }
     }
 };
@@ -114,16 +129,14 @@ class Game {
     unsigned int rayCastingPrecision = 64;
     std::vector<std::vector<int>> map;
 
-    float degreesToRadians(float degrees) {
-        return degrees * (float)M_PI / 180;
-    }
+
 
 public:
     Game(size_t length, size_t height) {
         LENGTH = length;
         HEIGHT = height;
         pWindow = new Window(LENGTH, HEIGHT, "test");
-        pPlayer = new Player(2, 2, 0);
+        pPlayer = new Player(8, 2, 0);
 
         map = {
             {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -146,8 +159,8 @@ public:
         float halfHeight = (float)HEIGHT / 2.f;
         for (unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
             float rayX = playerX, rayY = playerY;
-            float rayCosIncrement = cosf(degreesToRadians(rayAngle) / (float)rayCastingPrecision);
-            float raySinIncrement = sinf(degreesToRadians(rayAngle) / (float)rayCastingPrecision);
+            float rayCosIncrement = cosf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
+            float raySinIncrement = sinf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
 
             bool hitWall = false;
             while (!hitWall) {
@@ -157,6 +170,7 @@ public:
             }
 
             float distanceToWall = sqrtf(fabsf(playerX - rayX) * fabsf(playerX - rayX) + fabsf(playerY - rayY) * fabsf(playerY - rayY));
+            distanceToWall *= cosf(degreesToRadians(rayAngle - pPlayer->getAngle()));
             float wallHeight = (halfHeight / distanceToWall);
 
             // Draw lines.
@@ -165,7 +179,7 @@ public:
             // pWindow->drawLine((float)rayCount, halfHeight - wallHeight, (float)rayCount, halfHeight + wallHeight, sf::Color(100, 62, 10, 100));
             pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color::Green);
             pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color::Blue);
-            pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(70, 44, 7, 100));
+            pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(100, 62, 10, 100));
             rayAngle += incrimentAngle;
         }
     }
@@ -173,8 +187,8 @@ public:
     void play() {
         while (pWindow->isOpen()) {
             rayCasting();
-            pPlayer->movement();
             pWindow->display();
+            pPlayer->movement();
         }
     }
 
@@ -185,7 +199,7 @@ public:
 };
 
 int main() {
-    size_t LENGTH = 800, HEIGHT = 600;
+    size_t LENGTH = 1280, HEIGHT = 720;
 
     Game game(LENGTH, HEIGHT);
     game.play();
