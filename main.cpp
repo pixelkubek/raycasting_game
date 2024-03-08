@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <chrono>
 
 float degreesToRadians(float degrees) {
     return degrees * (float)M_PI / 180.f;
@@ -89,7 +90,7 @@ class Window {
 };
 
 class Player {
-    float x, y, angle, speed = 0.5f, angularSpeed = 5.f;
+    float x, y, angle, speed = 0.007f, angularSpeed = 0.13f;
 
 public:
     float getX() { return x; }
@@ -102,20 +103,20 @@ public:
         angle = start_angle;
     }
 
-    void movement() {
+    void movement(float deltaTime) {
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            x += speed * cosf(degreesToRadians(angle));
-            y += speed * sinf(degreesToRadians(angle));
+            x += speed * cosf(degreesToRadians(angle)) * deltaTime;
+            y += speed * sinf(degreesToRadians(angle)) * deltaTime;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            x -= speed * cosf(degreesToRadians(angle));
-            y -= speed * sinf(degreesToRadians(angle));
+            x -= speed * cosf(degreesToRadians(angle)) * deltaTime;
+            y -= speed * sinf(degreesToRadians(angle)) * deltaTime;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            angle -= angularSpeed;
+            angle -= angularSpeed * deltaTime;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            angle += angularSpeed;
+            angle += angularSpeed * deltaTime;
         }
     }
 };
@@ -185,10 +186,13 @@ public:
     }
 
     void play() {
+        std::chrono::_V2::system_clock::time_point endOfPrevLoop = std::chrono::high_resolution_clock::now();
         while (pWindow->isOpen()) {
             rayCasting();
             pWindow->display();
-            pPlayer->movement();
+            // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count() << std::endl;
+            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count());
+            endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
     }
 
