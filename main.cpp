@@ -104,34 +104,39 @@ public:
     }
 
     private:
-    void moveRelative(float forwardDistance, float rightDistance) {
+    void moveRelative(float forwardDistance, float rightDistance, const std::vector<std::vector<int>> &map) {
         float new_x = x, new_y = y;
         new_x += forwardDistance * cosf(degreesToRadians(angle));
         new_y += forwardDistance * sinf(degreesToRadians(angle));
         new_x += rightDistance * cosf(degreesToRadians(angle + 90));
         new_y += rightDistance * sinf(degreesToRadians(angle + 90));
+
+        if(!map[(int)new_y][(int)new_x]) {
+            x = new_x;
+            y = new_y;
+        }
     }
 
 
     public:
-    void movement(float deltaTime) {
+    void movement(float deltaTime, const std::vector<std::vector<int>> &map) {
         std::cout << angle << " " << angle + 90 << std::endl;
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            moveRelative(speed * deltaTime, 0);
+            moveRelative(speed * deltaTime, 0, map);
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            moveRelative(-speed * deltaTime, 0);
+            moveRelative(-speed * deltaTime, 0, map);
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
-                moveRelative(0, -speed * deltaTime);
+                moveRelative(0, -speed * deltaTime, map);
             } else {
                 angle -= angularSpeed * deltaTime;
             }
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
-                moveRelative(0, speed * deltaTime);
+                moveRelative(0, speed * deltaTime, map);
             } else {
                 angle += angularSpeed * deltaTime;
             }
@@ -210,7 +215,7 @@ public:
             rayCasting();
             pWindow->display();
             // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count() << std::endl;
-            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count());
+            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), map);
             endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
     }
