@@ -86,14 +86,13 @@ class Window {
         pixels[(trueHeight - y - 1) * trueLength + x].color = color;
     }
     
-    void setPixelColor(int x, int y, sf::Color color) {
-        setTruePixelColor(x * scaleModifier, y * scaleModifier, color);
+    void setGamePixelColor(int x, int y, sf::Color color) {
+        for(int i = 0; i < scaleModifier; i++) {
+            for(int j = 0; j < scaleModifier; j++) {
+                setTruePixelColor(x * scaleModifier + i, y * scaleModifier + j, color);
+            }
+        }
     }
-
-    // void setPixelColor(int x, int y, sf::Color color) {
-    //     if (x < 0 || (size_t)x >= LENGTH || y < 0 || (size_t)y >= HEIGHT) return;
-    //     pixels[(HEIGHT - y - 1) * LENGTH + x].color = color;
-    // }
 
     void drawLine(float x1, float y1, float x2, float y2, sf::Color color) {
         float incriment, x, y;
@@ -102,7 +101,7 @@ class Window {
             incriment = (y2 - y1) / (x2 - x1);
             y = y1;
             for (x = x1; x <= x2; x++) {
-                setPixelColor((int)x, (int)y, color);
+                setGamePixelColor((int)x, (int)y, color);
                 y += incriment;
             }
         }
@@ -111,7 +110,7 @@ class Window {
             x = x1;
             incriment = (x2 - x1) / (y2 - y1);
             for (y = y1; y < y2; y++) {
-                setPixelColor((int)x, (int)y, color);
+                setGamePixelColor((int)x, (int)y, color);
                 x += incriment;
             }
         }
@@ -120,7 +119,7 @@ class Window {
     void drawVericalLine(int y1, int y2, int x, sf::Color color) {
         if(y1 > y2) std::swap(y1, y2);
         for(int y = y1; y <= y2; y++){
-            setPixelColor(x, y, color);
+            setGamePixelColor(x, y, color);
         }
     }
 
@@ -296,9 +295,9 @@ public:
 };
 
 int main() {
-    size_t LENGTH = 600, HEIGHT = 240;
+    size_t LENGTH = 1280, HEIGHT = 720;
 
-    Game game(LENGTH, HEIGHT, 2);
+    Game game(LENGTH, HEIGHT, 4);
     game.play();
 
     return 0;
