@@ -54,21 +54,25 @@ class Window {
     sf::RenderWindow* pRenderWindow;
     size_t LENGTH, HEIGHT;
     sf::VertexArray pixels;
+    int scaleModifier;
 
     bool isEqualFloat(float a, float b) {
         return fabsf(a - b) < 10e-10;
     }
 
     public:
-    Window(size_t length, size_t height, std::string title) {
+    Window(size_t length, size_t height, int scale, std::string title) {
         LENGTH = length;
         HEIGHT = height;
-        pRenderWindow = new sf::RenderWindow(sf::VideoMode((unsigned int)LENGTH, (unsigned int)HEIGHT), title);
-        pixels = sf::VertexArray(sf::Points, LENGTH * HEIGHT);
+        scaleModifier = scale;
+        pRenderWindow = new sf::RenderWindow(sf::VideoMode((unsigned int)LENGTH * scaleModifier, (unsigned int)HEIGHT * scaleModifier), title);
+        pixels = sf::VertexArray(sf::Points, LENGTH * HEIGHT * scaleModifier * scaleModifier);
 
-        for (size_t y = 0; y < HEIGHT; y++) {
-            for (size_t x = 0; x < LENGTH; x++) {
-                pixels[y * LENGTH + x].position = sf::Vector2f((float)x, (float)y);
+        for (size_t y = 0; y < HEIGHT * scaleModifier; y++) {
+            for (size_t x = 0; x < LENGTH * scaleModifier; x++) {
+                std::cout << y << " " << x << " " << std::endl;
+                pixels[y * LENGTH * scaleModifier + x].position = sf::Vector2f((float)(x), (float)(y));
+                pixels[y * LENGTH * scaleModifier + x].color = sf::Color::Cyan;
             }
         }
     }
@@ -77,10 +81,19 @@ class Window {
         return pRenderWindow->isOpen();
     }
 
-    void setPixelColor(int x, int y, sf::Color color) {
-        if (x < 0 || (size_t)x >= LENGTH || y < 0 || (size_t)y >= HEIGHT) return;
-        pixels[(HEIGHT - y - 1) * LENGTH + x].color = color;
+    void setTruePixelColor(int x, int y, sf::Color color) {
+        if (x < 0 || (size_t)x >= LENGTH * scaleModifier || y < 0 || (size_t)y >= HEIGHT * scaleModifier) return;
+        pixels[(HEIGHT * scaleModifier - y - 1) * LENGTH * scaleModifier + x].color = color;
     }
+    
+    void setPixelColor(int x, int y, sf::Color color) {
+        setTruePixelColor(x * scaleModifier, y * scaleModifier, color);
+    }
+
+    // void setPixelColor(int x, int y, sf::Color color) {
+    //     if (x < 0 || (size_t)x >= LENGTH || y < 0 || (size_t)y >= HEIGHT) return;
+    //     pixels[(HEIGHT - y - 1) * LENGTH + x].color = color;
+    // }
 
     void drawLine(float x1, float y1, float x2, float y2, sf::Color color) {
         float incriment, x, y;
@@ -113,15 +126,7 @@ class Window {
 
     void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
-        float y = (float)HEIGHT / 2.f - wallHeight;
-        // int ct = 0;
-        // while(y < (int)HEIGHT / 2 + wallHeight) {
-        //     for(int i = 0; i < texturePixelIncrement; i++){
-        //         setPixelColor(x, y, texture.getColorMap()[ct][texturePositionX]);
-        //         y++;
-        //     }
-        //     ct++;
-        // }
+        float y = (float)(HEIGHT / 2) - wallHeight;
         for(int i = 0; i < (int)texture.getHeight(); i++) {
             drawVericalLine((int)y, (int)y + (int)texturePixelSize, x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
             y += texturePixelSize;
@@ -216,10 +221,10 @@ class Game {
 
 
 public:
-    Game(size_t length, size_t height) {
-        LENGTH = length;
-        HEIGHT = height;
-        pWindow = new Window(LENGTH, HEIGHT, "test");
+    Game(size_t length, size_t height, int scale) {
+        LENGTH = length / scale;
+        HEIGHT = height / scale;
+        pWindow = new Window(LENGTH, HEIGHT, scale, "test");
         pPlayer = new Player(8, 2, 0);
 
         map = {
@@ -257,7 +262,7 @@ public:
             distanceToWall *= cosf(degreesToRadians(rayAngle - pPlayer->getAngle()));
             float wallHeight = (halfHeight / distanceToWall);
 
-            Texture t("texture.ppm");
+            Texture t("texture2.ppm");
             int texturePositionX = (int)((float)t.getWidth() * (rayX + rayY)) % (int)t.getWidth();
             // One of rayX and rayY is close to edge
 
@@ -291,9 +296,9 @@ public:
 };
 
 int main() {
-    size_t LENGTH = 1280, HEIGHT = 720;
+    size_t LENGTH = 600, HEIGHT = 240;
 
-    Game game(LENGTH, HEIGHT);
+    Game game(LENGTH, HEIGHT, 2);
     game.play();
 
     return 0;
