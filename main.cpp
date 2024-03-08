@@ -103,21 +103,40 @@ public:
         angle = start_angle;
     }
 
+    private:
+    void moveRelative(float forwardDistance, float rightDistance) {
+        float new_x = x, new_y = y;
+        new_x += forwardDistance * cosf(degreesToRadians(angle));
+        new_y += forwardDistance * sinf(degreesToRadians(angle));
+        new_x += rightDistance * cosf(degreesToRadians(angle + 90));
+        new_y += rightDistance * sinf(degreesToRadians(angle + 90));
+    }
+
+
+    public:
     void movement(float deltaTime) {
+        std::cout << angle << " " << angle + 90 << std::endl;
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            x += speed * cosf(degreesToRadians(angle)) * deltaTime;
-            y += speed * sinf(degreesToRadians(angle)) * deltaTime;
+            moveRelative(speed * deltaTime, 0);
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            x -= speed * cosf(degreesToRadians(angle)) * deltaTime;
-            y -= speed * sinf(degreesToRadians(angle)) * deltaTime;
+            moveRelative(-speed * deltaTime, 0);
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            angle -= angularSpeed * deltaTime;
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
+                moveRelative(0, -speed * deltaTime);
+            } else {
+                angle -= angularSpeed * deltaTime;
+            }
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            angle += angularSpeed * deltaTime;
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
+                moveRelative(0, speed * deltaTime);
+            } else {
+                angle += angularSpeed * deltaTime;
+            }
         }
+
     }
 };
 
