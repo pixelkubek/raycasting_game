@@ -52,7 +52,7 @@ class Texture {
 
 class Window {
     sf::RenderWindow* pRenderWindow;
-    size_t LENGTH, HEIGHT;
+    size_t gameLength, gameHeight, trueHeight, trueLength;
     sf::VertexArray pixels;
     int scaleModifier;
 
@@ -62,17 +62,17 @@ class Window {
 
     public:
     Window(size_t length, size_t height, int scale, std::string title) {
-        LENGTH = length;
-        HEIGHT = height;
+        gameLength = length;
+        gameHeight = height;
         scaleModifier = scale;
-        pRenderWindow = new sf::RenderWindow(sf::VideoMode((unsigned int)LENGTH * scaleModifier, (unsigned int)HEIGHT * scaleModifier), title);
-        pixels = sf::VertexArray(sf::Points, LENGTH * HEIGHT * scaleModifier * scaleModifier);
+        trueLength = gameLength * scaleModifier;
+        trueHeight = gameHeight * scaleModifier;
+        pRenderWindow = new sf::RenderWindow(sf::VideoMode((unsigned int)trueLength, (unsigned int)trueHeight), title);
+        pixels = sf::VertexArray(sf::Points, trueLength * trueHeight);
 
-        for (size_t y = 0; y < HEIGHT * scaleModifier; y++) {
-            for (size_t x = 0; x < LENGTH * scaleModifier; x++) {
-                std::cout << y << " " << x << " " << std::endl;
-                pixels[y * LENGTH * scaleModifier + x].position = sf::Vector2f((float)(x), (float)(y));
-                pixels[y * LENGTH * scaleModifier + x].color = sf::Color::Cyan;
+        for (size_t y = 0; y < trueHeight; y++) {
+            for (size_t x = 0; x < trueLength; x++) {
+                pixels[y * trueLength + x].position = sf::Vector2f((float)(x), (float)(y));
             }
         }
     }
@@ -82,8 +82,8 @@ class Window {
     }
 
     void setTruePixelColor(int x, int y, sf::Color color) {
-        if (x < 0 || (size_t)x >= LENGTH * scaleModifier || y < 0 || (size_t)y >= HEIGHT * scaleModifier) return;
-        pixels[(HEIGHT * scaleModifier - y - 1) * LENGTH * scaleModifier + x].color = color;
+        if (x < 0 || (size_t)x >= trueLength || y < 0 || (size_t)y >= trueHeight) return;
+        pixels[(trueHeight - y - 1) * trueLength + x].color = color;
     }
     
     void setPixelColor(int x, int y, sf::Color color) {
@@ -126,7 +126,7 @@ class Window {
 
     void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
-        float y = (float)(HEIGHT / 2) - wallHeight;
+        float y = (float)(gameHeight / 2) - wallHeight;
         for(int i = 0; i < (int)texture.getHeight(); i++) {
             drawVericalLine((int)y, (int)y + (int)texturePixelSize, x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
             y += texturePixelSize;
