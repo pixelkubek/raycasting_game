@@ -25,7 +25,7 @@ class Texture {
             std::vector<sf::Color> currentLine;
             for(int j = 0; j < width; j++) {
                 file >> r >> g >> b;
-                currentLine.push_back(sf::Color((unsigned char)r, (unsigned char)g, (unsigned char)b, 100));
+                currentLine.push_back(sf::Color((unsigned char)r, (unsigned char)g, (unsigned char)b, 255));
             }
             colorMap.push_back(currentLine);
             currentLine.clear();
@@ -41,6 +41,12 @@ class Texture {
             }
             std::cout << std::endl;
         }
+    }
+
+    size_t getHeight() {return colorMap.size();}
+    size_t getWidth() {return colorMap.front().size();}
+    const std::vector<std::vector<sf::Color>> & getColorMap() {
+        return colorMap;
     }
 };
 
@@ -102,6 +108,24 @@ class Window {
         if(y1 > y2) std::swap(y1, y2);
         for(int y = y1; y <= y2; y++){
             setPixelColor(x, y, color);
+        }
+    }
+
+    void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
+        float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
+        float y = (float)HEIGHT / 2.f - wallHeight;
+        // int ct = 0;
+        // while(y < (int)HEIGHT / 2 + wallHeight) {
+        //     for(int i = 0; i < texturePixelIncrement; i++){
+        //         setPixelColor(x, y, texture.getColorMap()[ct][texturePositionX]);
+        //         y++;
+        //     }
+        //     ct++;
+        // }
+        for(int i = 0; i < (int)texture.getHeight(); i++) {
+            drawVericalLine((int)y, (int)y + (int)texturePixelSize, x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
+            y += texturePixelSize;
+
         }
     }
 
@@ -233,6 +257,10 @@ public:
             distanceToWall *= cosf(degreesToRadians(rayAngle - pPlayer->getAngle()));
             float wallHeight = (halfHeight / distanceToWall);
 
+            Texture t("texture.ppm");
+            int texturePositionX = (int)((float)t.getWidth() * (rayX + rayY)) % (int)t.getWidth();
+            // One of rayX and rayY is close to edge
+
             // Draw lines.
             // pWindow->drawLine((float)rayCount, 0, (float)rayCount, halfHeight, sf::Color::Green);
             // pWindow->drawLine((float)rayCount, halfHeight, (float)rayCount, (float)HEIGHT, sf::Color::Blue);
@@ -240,6 +268,7 @@ public:
             pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color::Green);
             pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color::Blue);
             pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(100, 62, 10, 100));
+            pWindow->drawTextureVerticalLine(rayCount, wallHeight, texturePositionX, t);
             rayAngle += incrimentAngle;
         }
     }
