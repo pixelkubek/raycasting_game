@@ -81,7 +81,7 @@ class Window {
         return pRenderWindow->isOpen();
     }
 
-    void setTruePixelColor(int x, int y, sf::Color color) {
+    void setTruePixelColor(int x, int y, const sf::Color &color) {
         if (x < 0 || (size_t)x >= trueLength || y < 0 || (size_t)y >= trueHeight) return;
         pixels[(trueHeight - y - 1) * trueLength + x].color = color;
     }
@@ -94,7 +94,7 @@ class Window {
         }
     }
 
-    void drawLine(float x1, float y1, float x2, float y2, sf::Color color) {
+    void drawLine(float x1, float y1, float x2, float y2, const sf::Color &color) {
         float incriment, x, y;
 
         if (!isEqualFloat(x1, x2)) {
@@ -116,7 +116,7 @@ class Window {
         }
     }
 
-    void drawVericalLine(int y1, int y2, int x, sf::Color color) {
+    void drawVericalLine(int y1, int y2, int x, const sf::Color &color) {
         if(y1 > y2) std::swap(y1, y2);
         for(int y = y1; y <= y2; y++){
             setGamePixelColor(x, y, color);
@@ -126,8 +126,13 @@ class Window {
     void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
         float y = (float)(gameHeight / 2) - wallHeight;
-        for(int i = 0; i < (int)texture.getHeight(); i++) {
-            drawVericalLine((int)y, (int)y + (int)texturePixelSize, x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
+
+        // Bottom color set differently to avoid black gap
+        drawVericalLine((int)(y), (int)(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - 1][texturePositionX]);
+        y += texturePixelSize;
+
+        for(int i = 1; i < (int)texture.getHeight(); i++) {
+            drawVericalLine((int)round(y), (int)ceil(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
             y += texturePixelSize;
 
         }
@@ -297,7 +302,7 @@ public:
 int main() {
     size_t LENGTH = 1280, HEIGHT = 720;
 
-    Game game(LENGTH, HEIGHT, 4);
+    Game game(LENGTH, HEIGHT, 2);
     game.play();
 
     return 0;
