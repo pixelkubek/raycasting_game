@@ -13,7 +13,7 @@ class Window {
         return fabsf(a - b) < 10e-10;
     }
 
-public:
+    public:
     Window(size_t length, size_t height, std::string title) {
         LENGTH = length;
         HEIGHT = height;
@@ -33,7 +33,7 @@ public:
 
     void setPixelColor(int x, int y, sf::Color color) {
         if (x < 0 || (size_t)x >= LENGTH || y < 0 || (size_t)y >= HEIGHT) return;
-        pixels[(HEIGHT - y) * LENGTH + x].color = color;
+        pixels[(HEIGHT - y - 1) * LENGTH + x].color = color;
     }
 
     void drawLine(float x1, float y1, float x2, float y2, sf::Color color) {
@@ -58,6 +58,13 @@ public:
         }
     }
 
+    void drawVericalLine(int y1, int y2, int x, sf::Color color) {
+        if(y1 > y2) std::swap(y1, y2);
+        for(int y = y1; y <= y2; y++){
+            setPixelColor(x, y, color);
+        }
+    }
+
     void display() {
         sf::Event event;
         while (pRenderWindow->pollEvent(event)) {
@@ -78,18 +85,23 @@ public:
 };
 
 class Player {
-    float x, y, angle;
-
-    public:
-    float getX() {return x;}
-    float getY() {return y;}
-    float getAngle() {return angle;}
+    float x, y, angle, speed = 0.1;
 
 public:
+    float getX() { return x; }
+    float getY() { return y; }
+    float getAngle() { return angle; }
+
     Player(float start_x, float start_y, float start_angle) {
         x = start_x;
         y = start_y;
         angle = start_angle;
+    }
+
+    void movement() {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+            
+        }
     }
 };
 
@@ -111,6 +123,7 @@ public:
         LENGTH = length;
         HEIGHT = height;
         pWindow = new Window(LENGTH, HEIGHT, "test");
+        pPlayer = new Player(2, 2, 0);
 
         map = {
             {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -127,23 +140,47 @@ public:
     }
 
     void rayCasting() {
+        float playerX = pPlayer->getX(), playerY = pPlayer->getY();
         float rayAngle = pPlayer->getAngle() - (float)fov / 2.f;
         float incrimentAngle = (float)fov / (float)LENGTH;
-        for(unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
+        float halfHeight = (float)HEIGHT / 2.f;
+        for (unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
+            float rayX = playerX, rayY = playerY;
+            float rayCosIncrement = cosf(degreesToRadians(rayAngle) / (float)rayCastingPrecision);
+            float raySinIncrement = sinf(degreesToRadians(rayAngle) / (float)rayCastingPrecision);
 
+            bool hitWall = false;
+            while (!hitWall) {
+                rayX += rayCosIncrement;
+                rayY += raySinIncrement;
+                hitWall = map[(int)rayY][(int)rayX];
+            }
+
+            float distanceToWall = sqrtf(fabsf(playerX - rayX) * fabsf(playerX - rayX) + fabsf(playerY - rayY) * fabsf(playerY - rayY));
+            float wallHeight = (halfHeight / distanceToWall);
+
+            // Draw lines.
+            // pWindow->drawLine((float)rayCount, 0, (float)rayCount, halfHeight, sf::Color::Green);
+            // pWindow->drawLine((float)rayCount, halfHeight, (float)rayCount, (float)HEIGHT, sf::Color::Blue);
+            // pWindow->drawLine((float)rayCount, halfHeight - wallHeight, (float)rayCount, halfHeight + wallHeight, sf::Color(100, 62, 10, 100));
+            pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color::Green);
+            pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color::Blue);
+            pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(70, 44, 7, 100));
             rayAngle += incrimentAngle;
         }
     }
 
     void play() {
         while (pWindow->isOpen()) {
-            pWindow->drawLine(100, 100, 100, 200, sf::Color::Black);
+            rayCasting();
+            pPlayer->movement();
             pWindow->display();
         }
     }
 
     ~Game() {
         delete pWindow;
+        delete pPlayer;
     }
 };
 

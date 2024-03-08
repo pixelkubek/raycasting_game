@@ -1,0 +1,2 @@
+            // float distanceToWall = sqrtf(fabsf(playerX - rayX) * fabsf(playerX - rayX) + fabsf(playerY - rayY) * fabsf(playerY - rayY));
+            // float wallHeight = (halfHeight / distanceToWall);
