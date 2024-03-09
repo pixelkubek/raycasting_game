@@ -5,6 +5,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <string>
 
 float degreesToRadians(float degrees) {
     return degrees * (float)M_PI / 180.f;
@@ -91,7 +92,8 @@ public:
             {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
             {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
         };
-        setWallTexture("myTexture4.ppm");
+
+        setWallTexture("myTexture3.ppm");
         setEntranceTexture("entranceTextureP3.ppm");
         setExitTexture("exitTextureP3.ppm");
     }
@@ -202,7 +204,7 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3;               // Set entrance;
 
-        setWallTexture("myTexture4.ppm");
+        setWallTexture("myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
         setEntranceTexture("entranceTextureP3.ppm");
         setExitTexture("exitTextureP3.ppm");
     }
@@ -429,9 +431,13 @@ public:
 
         map = Map(maze_x_starting_size, maze_y_starting_size);
 
-        sky = Texture("testTexture.ppm");
+        sky = Texture("skyTexture2P3.ppm");
 
         helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
+    }
+
+    void changeSkyTexture(std::string filePath) {
+        sky = Texture(filePath);
     }
 
     void renderFrameToBuffer() {
@@ -550,6 +556,7 @@ public:
         player.setX(1.5f);
         player.setY(1.5f);
         helperWindowScale = std::max((int)std::min(trueLength / 2 / map.getMap().front().size(), trueHeight / 2 / map.getMap().size()), 1); // scale to main window.
+        changeSkyTexture("skyTexture" + std::to_string(rand() % 2 + 1) + "P3.ppm");
     }
 
     void play() {
