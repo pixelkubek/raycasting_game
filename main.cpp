@@ -567,9 +567,8 @@ public:
             // Provide time delta between frames
             player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
 
-            std::cout << maze_x << " " << maze_y << " " << player.getX() << " " << player.getY() << std::endl;
-
             if (player.getX() >= (float)maze_x && player.getY() >= (float)maze_y + 0.7f) {
+                std::cout << "Solved: " << maze_x << " * " << maze_y << std::endl;
                 loadNewMaze();
                 maze_x += 2;
                 maze_y += 2;
