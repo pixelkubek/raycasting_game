@@ -15,4 +15,4 @@
 -fno-sanitize-recover
 -g
 -fno-omit-frame-pointer
--O1
+-Ofast

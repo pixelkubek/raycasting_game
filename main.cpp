@@ -303,7 +303,7 @@ public:
     // Draw a vertical line.
     void drawVericalLine(int y1, int y2, int x, const sf::Color &color) {
         if (y1 > y2) std::swap(y1, y2);
-        for (int y = y1; y <= y2; y++) {
+        for (int y = std::max(y1, 0); y <= std::min(y2, (int)gameHeight); y++) {
             setGamePixelColor(x, y, color);
         }
     }
@@ -312,10 +312,6 @@ public:
     void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
         float y = (float)(gameHeight / 2) - wallHeight;
-
-        // // Bottom color set differently to avoid black gap
-        // drawVericalLine((int)(y), (int)(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - 1][texturePositionX]);
-        // y += texturePixelSize;
 
         for (int i = 0; i < (int)texture.getHeight(); i++) {
             drawVericalLine((int)round(y), (int)ceil(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
@@ -341,6 +337,7 @@ public:
     void toggleVisibility() {
         pRenderWindow->setVisible(!visibility);
         visibility = !visibility;
+        // if(visibility) pRenderWindow->requestFocus();
     }
 
     ~Window() {
@@ -350,7 +347,7 @@ public:
 
 // Class representing a player and his movement.
 class Player {
-    float x, y, angle, speed = 0.007f, horizontalSpeed = 0.004f, angularSpeed = 0.13f;
+    float x, y, angle, speed = 0.005f, horizontalSpeed = 0.002f, angularSpeed = 0.18f;
 
 public:
     Player() {
@@ -385,6 +382,10 @@ private:
         if (!map[(int)new_y][(int)new_x]) {
             x = new_x;
             y = new_y;
+        } else if (!map[(int)y][(int)new_x]){
+           x = new_x;
+        } else if (!map[(int)new_y][(int)x]){
+           y = new_y;
         }
     }
 
@@ -411,6 +412,9 @@ public:
                 angle += angularSpeed * deltaTime;
             }
         }
+
+        while(angle > 360) angle -= 360;
+        while(angle < 0) angle += 360;
     }
 };
 
@@ -479,6 +483,7 @@ public:
             distanceToWall *= cosf(degreesToRadians(rayAngle - playerAngle));
 
             float wallHeight = halfHeight / distanceToWall;
+
 
             // Load wall texture (todo - get from map class)
             Texture &t = map.getTexture((int)rayX, (int)rayY);
