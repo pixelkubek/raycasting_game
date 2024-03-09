@@ -96,6 +96,20 @@ public:
         }
     }
 
+    sf::Color getTileColor(int x, int y) {
+        switch (map[y][x])
+        {
+        case 1:
+            return sf::Color::Black;
+        
+        case 2:
+            return sf::Color::Green;
+        
+        default:
+            return sf::Color::White;
+        }
+    }
+
 private:
     // Random int in range (inclusive)
     int randInRange(int start, int end) {
@@ -168,7 +182,7 @@ public:
         map.push_back(std::vector<int>((size_t)size_x + 2, 1));
 
         generateMaze(1, 1, size_x, size_y);
-        map[size_y][size_x] = 2; // Set exit.
+        map[size_y + 1][size_x] = 2; // Set exit.
 
         setWallTexture("myTexture4.ppm");
     }
@@ -373,7 +387,7 @@ public:
 
 // Class representing game logic.
 class Game {
-    Window *pWindow;
+    Window *pWindow, *pHelperWindow;
     Player player;
     size_t LENGTH, HEIGHT;
     int fov = 60;
@@ -385,7 +399,8 @@ public:
         LENGTH = length / scale;
         HEIGHT = height / scale;
         pWindow = new Window(LENGTH, HEIGHT, scale, "Maze finder");
-        map = Map(3, 3);
+        map = Map(5, 5);
+        pHelperWindow = new Window((int)map.getMap().size(), (int)map.getMap().front().size(), 30, "Helper");
         map.print();
     }
 
@@ -461,6 +476,18 @@ public:
         }
     }
 
+    void renderHelperWindow() {
+        const std::vector<std::vector<int>> &mapArray = map.getMap();
+
+        for(int i = 0; i < (int)mapArray.size(); i++) {
+            for(int j = 0; j < (int)mapArray.front().size(); j++) {
+                pHelperWindow->setGamePixelColor(i, (int)mapArray.size() - 1 - j, map.getTileColor(i, j));
+            }
+        }
+
+        pHelperWindow->setGamePixelColor((int)player.getX(), (int)mapArray.size() - 1 - (int)player.getY(), sf::Color::Blue);
+    }
+
     void play() {
         // Used for calculating deltaTime
         std::chrono::_V2::system_clock::time_point endOfPrevLoop = std::chrono::high_resolution_clock::now();
@@ -469,7 +496,11 @@ public:
         // Game loop.
         while (pWindow->isOpen()) {
             renderFrameToBuffer();
+
+            renderHelperWindow();
+
             pWindow->display(); // Display buffer.
+            pHelperWindow->display();
 
             // Provide time delta between frames
             player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
@@ -480,10 +511,12 @@ public:
 
     ~Game() {
         delete pWindow;
+        delete pHelperWindow;
     }
 };
 
 int main() {
+    srand((unsigned int)time(NULL));
     size_t LENGTH = 1280, HEIGHT = 720;
 
     Game game(LENGTH, HEIGHT, 3);
