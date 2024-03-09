@@ -149,11 +149,11 @@ public:
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
         float y = (float)(gameHeight / 2) - wallHeight;
 
-        // Bottom color set differently to avoid black gap
-        drawVericalLine((int)(y), (int)(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - 1][texturePositionX]);
-        y += texturePixelSize;
+        // // Bottom color set differently to avoid black gap
+        // drawVericalLine((int)(y), (int)(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - 1][texturePositionX]);
+        // y += texturePixelSize;
 
-        for (int i = 1; i < (int)texture.getHeight(); i++) {
+        for (int i = 0; i < (int)texture.getHeight(); i++) {
             drawVericalLine((int)round(y), (int)ceil(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
             y += texturePixelSize;
         }
@@ -181,7 +181,7 @@ public:
 
 // Class representing a player and his movement.
 class Player {
-    float x, y, angle, speed = 0.007f, angularSpeed = 0.13f;
+    float x, y, angle, speed = 0.007f, horizontalSpeed = 0.004f, angularSpeed = 0.13f;
 
 public:
     float getX() { return x; }
@@ -221,14 +221,14 @@ public:
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
-                moveRelative(0, -speed * deltaTime, map);
+                moveRelative(0, -horizontalSpeed * deltaTime, map);
             } else {
                 angle -= angularSpeed * deltaTime;
             }
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) {
-                moveRelative(0, speed * deltaTime, map);
+                moveRelative(0, horizontalSpeed * deltaTime, map);
             } else {
                 angle += angularSpeed * deltaTime;
             }
