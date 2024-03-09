@@ -63,11 +63,19 @@ public:
 // Class representing a game map geometry, textures and marked places
 class Map {
     std::vector<std::vector<int>> map;
-    Texture wallTexture, deafultTexture;
+    Texture wallTexture, deafultTexture, entranceTexture, exitTexture;
 
 public:
     void setWallTexture(std::string filePath) {
         wallTexture = Texture(filePath);
+    }
+
+    void setEntranceTexture(std::string filePath) {
+        entranceTexture = Texture(filePath);
+    }
+
+    void setExitTexture(std::string filePath) {
+        exitTexture = Texture(filePath);
     }
 
     Map() {
@@ -78,18 +86,26 @@ public:
             {1, 0, 0, 1, 1, 0, 1, 0, 0, 1},
             {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
             {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
-            {1, 0, 0, 1, 0, 2, 1, 0, 0, 1},
+            {1, 0, 0, 1, 0, 1, 1, 0, 0, 1},
             {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
             {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
         };
         setWallTexture("myTexture4.ppm");
+        setEntranceTexture("entranceTextureP3.ppm");
+        setExitTexture("exitTextureP3.ppm");
     }
 
     Texture &getTexture(int x, int y) {
         switch (map[y][x]) {
         case 1:
             return wallTexture;
+
+        case 2:
+            return exitTexture;
+
+        case 3:
+            return entranceTexture;
 
         default:
             return deafultTexture;
@@ -104,6 +120,9 @@ public:
         
         case 2:
             return sf::Color::Green;
+
+        case 3:
+            return sf::Color::Yellow;
         
         default:
             return sf::Color::White;
@@ -118,7 +137,6 @@ private:
 
     // Regenerate map into a maze
     void generateMaze(int x1, int y1, int x2, int y2) {
-        printf("%i %i %i %i\n", x1, y1, x2, y2);
         int xRange = x2 - x1, yRange = y2 - y1;
         if (xRange <= 0 || yRange <= 0) return; // Recursion exit point
 
@@ -183,8 +201,11 @@ public:
 
         generateMaze(1, 1, size_x, size_y);
         map[size_y + 1][size_x] = 2; // Set exit.
+        map[0][1] = 3; // Set entrance;
 
         setWallTexture("myTexture4.ppm");
+        setEntranceTexture("entranceTextureP3.ppm");
+        setExitTexture("exitTextureP3.ppm");
     }
 
     const std::vector<std::vector<int>> &getMap() { return map; }
@@ -411,11 +432,12 @@ public:
         maze_y = maze_y_size;
 
         map = Map(maze_x, maze_y);
+        // map.print();
 
-        int helperWindowScale = (int)std::min(length / map.getMap().front().size(), height / map.getMap().size()); // scale to main window.
+        int helperWindowScale = (int)std::max(length / map.getMap().front().size(), height / map.getMap().size()); // scale to main window.
         helperWindowScale /= 4;
 
-        pHelperWindow = new Window((int)map.getMap().size(), (int)map.getMap().front().size(), helperWindowScale, "Helper");
+        pHelperWindow = new Window((int)map.getMap().front().size(), (int)map.getMap().size(), helperWindowScale, "Helper");
         pHelperWindow->toggleVisibility();
     }
 
@@ -494,8 +516,8 @@ public:
     void renderHelperWindow() {
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
-        for(int i = 0; i < (int)mapArray.size(); i++) {
-            for(int j = 0; j < (int)mapArray.front().size(); j++) {
+        for(int i = 0; i < (int)mapArray.front().size(); i++) {
+            for(int j = 0; j < (int)mapArray.size(); j++) {
                 pHelperWindow->setGamePixelColor(i, (int)mapArray.size() - 1 - j, map.getTileColor(i, j));
             }
         }
@@ -547,9 +569,17 @@ public:
 
 int main() {
     srand((unsigned int)time(NULL));
-    size_t LENGTH = 1280, HEIGHT = 720;
+    std::ifstream options;
+    size_t LENGTH = 1280, HEIGHT = 720, SCALE = 3, MAZE_WIDTH = 11, MAZE_HEIGHT = 11;
+    std::string temp;
 
-    Game game(LENGTH, HEIGHT, 3, 7, 7);
+    options.open("settings.txt") ;
+    options >> temp >> LENGTH >> temp >> HEIGHT >> temp >> SCALE >> temp >> MAZE_WIDTH >> temp >> MAZE_HEIGHT;
+    std::cout << LENGTH;
+
+    options.close();
+
+    Game game(LENGTH, HEIGHT, (int)SCALE, (int)MAZE_WIDTH, (int)MAZE_HEIGHT);
     game.play();
 
     return 0;
