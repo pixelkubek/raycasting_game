@@ -203,7 +203,7 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3; // Set entrance;
 
-        setWallTexture("testTexture.ppm");
+        setWallTexture("myTexture4.ppm");
         setEntranceTexture("entranceTextureP3.ppm");
         setExitTexture("exitTextureP3.ppm");
     }
@@ -309,7 +309,19 @@ public:
     }
 
     // Draws a vertical strip of a texture, texturePositionX determines which.
-    void drawTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
+    void drawTextureVerticalLine(int x, float y1, float y2, int texturePositionX, Texture &texture) {
+        float texturePixelSize = (y2 - y1 + 1) / (float)texture.getHeight();
+
+        float y = y1;
+
+        for (int i = 0; i < (int)texture.getHeight(); i++) {
+            drawVericalLine((int)round(y), (int)ceil(y + texturePixelSize), x, texture.getColorMap()[texture.getHeight() - i - 1][texturePositionX]);
+            y += texturePixelSize;
+        }
+    }
+
+    // Must be a separate function to avoid float precision artifacts at half height
+    void drawWallTextureVerticalLine(int x, float wallHeight, int texturePositionX, Texture &texture) {
         float texturePixelSize = (2.f * wallHeight) / (float)texture.getHeight();
         float y = (float)(gameHeight / 2) - wallHeight;
 
@@ -421,12 +433,14 @@ public:
 
 // Class representing game logic.
 class Game {
-    Window *pWindow, *pHelperWindow;
+    Window *pWindow;
     Player player;
     size_t LENGTH, HEIGHT;
-    int fov = 60, maze_x, maze_y;
+    int fov = 60, maze_x, maze_y, helperWindowScale;
     unsigned int rayCastingPrecision = 64;
     Map map;
+    Texture sky;
+    bool helperVisibility = false;
 
 public:
     Game(size_t length, size_t height, int scale, int maze_x_size, int maze_y_size) {
@@ -439,11 +453,9 @@ public:
         map = Map(maze_x, maze_y);
         // map.print();
 
-        int helperWindowScale = std::max((int)std::max(length / map.getMap().front().size(), height / map.getMap().size()), 4); // scale to main window.
-        helperWindowScale /= 4;
-
-        pHelperWindow = new Window((int)map.getMap().front().size(), (int)map.getMap().size(), helperWindowScale, "Helper");
-        pHelperWindow->toggleVisibility();
+        sky = Texture("testTexture.ppm");        
+        
+        helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
     }
 
     void renderFrameToBuffer() {
@@ -463,6 +475,11 @@ public:
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
         for (unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
+            // Normalise rayAngle.
+            while(rayAngle > 360) rayAngle -= 360;
+            while(rayAngle < 0) rayAngle += 360;
+
+
             float rayX = playerX, rayY = playerY; // Ray starts from the player.
 
             // Calculate ray increments in x, y coordinates
@@ -515,28 +532,38 @@ public:
             pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color(121, 121, 121, 255));
 
             // Draw sky.
-            pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color(0, 199, 199, 255));
-
+            // pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color(0, 199, 199, 255));
+            pWindow->drawTextureVerticalLine(rayCount, halfHeight, (float)HEIGHT + 1, (int)((float)sky.getWidth() * (rayAngle / 360.f)) % (int)sky.getWidth(), sky);
+            
             // Draw untextured walls.
             // pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(100, 62, 10, 100));
 
             // Draw textures.
-            pWindow->drawTextureVerticalLine(rayCount, wallHeight, textureVerticalSlipIdx, t);
+            pWindow->drawWallTextureVerticalLine(rayCount, wallHeight, textureVerticalSlipIdx, t);
 
             rayAngle += incrimentAngle;
         }
     }
 
+    void renderHelperWindowPixel(int x, int y, const sf::Color &color) {
+        for(int i = 0; i < helperWindowScale; i++) {
+            for(int j = 0; j < helperWindowScale; j++) {
+                pWindow->setTruePixelColor(helperWindowScale * x + i, helperWindowScale * y + j, color);
+            }
+        }
+    }
+
     void renderHelperWindow() {
+        if(!helperVisibility) return;
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
         for(int i = 0; i < (int)mapArray.front().size(); i++) {
             for(int j = 0; j < (int)mapArray.size(); j++) {
-                pHelperWindow->setGamePixelColor(i, j, map.getTileColor(i, j));
+                renderHelperWindowPixel(i, j, map.getTileColor(i, j));
             }
         }
 
-        pHelperWindow->setGamePixelColor((int)player.getX(), (int)player.getY(), sf::Color::Blue);
+        renderHelperWindowPixel((int)player.getX(), (int)player.getY(), sf::Color::Blue);
     }
 
     void loadNewMaze() {
@@ -558,7 +585,6 @@ public:
             renderHelperWindow();
 
             pWindow->display(); // Display buffer.
-            pHelperWindow->display();
 
             // Provide time delta between frames
             player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
@@ -567,7 +593,7 @@ public:
                 loadNewMaze();
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - spacePress).count() > 300) {
-                pHelperWindow->toggleVisibility();
+                helperVisibility = !helperVisibility;
                 spacePress = std::chrono::high_resolution_clock::now();
             }
             
@@ -577,7 +603,6 @@ public:
 
     ~Game() {
         delete pWindow;
-        delete pHelperWindow;
     }
 };
 

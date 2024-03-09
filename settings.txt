@@ -1,5 +1,5 @@
 Window_width: 1280
 Window_height: 720
-Rendering_scale: 1
-Maze_width: 11
-Maze_length: 7
+Rendering_scale: 4
+Maze_width: 21
+Maze_length: 11
