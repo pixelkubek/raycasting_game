@@ -205,6 +205,7 @@ class Window {
     size_t gameLength, gameHeight, trueHeight, trueLength;
     sf::VertexArray pixels;
     int scaleModifier;
+    bool visibility = true;
 
     bool isEqualFloat(float a, float b) {
         return fabsf(a - b) < 10e-10;
@@ -316,6 +317,11 @@ public:
         pRenderWindow->display();
     }
 
+    void toggleVisibility() {
+        pRenderWindow->setVisible(!visibility);
+        visibility = !visibility;
+    }
+
     ~Window() {
         delete pRenderWindow;
     }
@@ -334,7 +340,9 @@ public:
     }
 
     float getX() { return x; }
+    void setX(float newX) {x = newX;}
     float getY() { return y; }
+    void setY(float newY) {y = newY;}
     float getAngle() { return angle; }
 
     Player(float start_x, float start_y, float start_angle) {
@@ -390,18 +398,25 @@ class Game {
     Window *pWindow, *pHelperWindow;
     Player player;
     size_t LENGTH, HEIGHT;
-    int fov = 60;
+    int fov = 60, maze_x, maze_y;
     unsigned int rayCastingPrecision = 64;
     Map map;
 
 public:
-    Game(size_t length, size_t height, int scale) {
+    Game(size_t length, size_t height, int scale, int maze_x_size, int maze_y_size) {
         LENGTH = length / scale;
         HEIGHT = height / scale;
         pWindow = new Window(LENGTH, HEIGHT, scale, "Maze finder");
-        map = Map(5, 5);
-        pHelperWindow = new Window((int)map.getMap().size(), (int)map.getMap().front().size(), 30, "Helper");
-        map.print();
+        maze_x = maze_x_size;
+        maze_y = maze_y_size;
+
+        map = Map(maze_x, maze_y);
+
+        int helperWindowScale = (int)std::min(length / map.getMap().front().size(), height / map.getMap().size()); // scale to main window.
+        helperWindowScale /= 4;
+
+        pHelperWindow = new Window((int)map.getMap().size(), (int)map.getMap().front().size(), helperWindowScale, "Helper");
+        pHelperWindow->toggleVisibility();
     }
 
     void renderFrameToBuffer() {
@@ -488,9 +503,16 @@ public:
         pHelperWindow->setGamePixelColor((int)player.getX(), (int)mapArray.size() - 1 - (int)player.getY(), sf::Color::Blue);
     }
 
+    void loadNewMaze() {
+        map = Map(maze_x, maze_y);
+        player.setX(1.5f);
+        player.setY(1.5f);
+    }
+
     void play() {
         // Used for calculating deltaTime
         std::chrono::_V2::system_clock::time_point endOfPrevLoop = std::chrono::high_resolution_clock::now();
+        std::chrono::_V2::system_clock::time_point spacePress = std::chrono::high_resolution_clock::now();
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
         // Game loop.
@@ -505,6 +527,14 @@ public:
             // Provide time delta between frames
             player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
 
+            if(player.getX() >= (float)maze_x && player.getY() >= (float)maze_y + 0.7f)
+                loadNewMaze();
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - spacePress).count() > 300) {
+                pHelperWindow->toggleVisibility();
+                spacePress = std::chrono::high_resolution_clock::now();
+            }
+            
             endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
     }
@@ -519,7 +549,7 @@ int main() {
     srand((unsigned int)time(NULL));
     size_t LENGTH = 1280, HEIGHT = 720;
 
-    Game game(LENGTH, HEIGHT, 3);
+    Game game(LENGTH, HEIGHT, 3, 7, 7);
     game.play();
 
     return 0;
