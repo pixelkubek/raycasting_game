@@ -203,7 +203,7 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3; // Set entrance;
 
-        setWallTexture("myTexture4.ppm");
+        setWallTexture("testTexture.ppm");
         setEntranceTexture("entranceTextureP3.ppm");
         setExitTexture("exitTextureP3.ppm");
     }
@@ -391,6 +391,7 @@ private:
 
 public:
     void movement(float deltaTime, const std::vector<std::vector<int>> &map) {
+        std::cout << angle << "\n";
         // DeltaTime ensures similar real time player speed with different framerates.
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
             moveRelative(speed * deltaTime, 0, map);
@@ -498,9 +499,17 @@ public:
             int textureWidth = (int)t.getWidth();
             if (fabsf(rayX - roundf(rayX)) > fabsf(rayY - roundf(rayY))) {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayX) % textureWidth;
+                // Flip the textures when necessary.
+                if(roundf(rayY) > floorf(rayY)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
             } else {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayY) % textureWidth;
+                // Flip the textures when necessary.
+                if(roundf(rayX) <= floorf(rayX)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
             }
+
+            
+
+            // if(45 < rayAngle && rayAngle < 135) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
 
             // Draw floor.
             pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color(121, 121, 121, 255));
