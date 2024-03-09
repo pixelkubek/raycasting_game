@@ -434,7 +434,7 @@ public:
         map = Map(maze_x, maze_y);
         // map.print();
 
-        int helperWindowScale = (int)std::max(length / map.getMap().front().size(), height / map.getMap().size()); // scale to main window.
+        int helperWindowScale = std::max((int)std::max(length / map.getMap().front().size(), height / map.getMap().size()), 4); // scale to main window.
         helperWindowScale /= 4;
 
         pHelperWindow = new Window((int)map.getMap().front().size(), (int)map.getMap().size(), helperWindowScale, "Helper");
@@ -518,11 +518,11 @@ public:
 
         for(int i = 0; i < (int)mapArray.front().size(); i++) {
             for(int j = 0; j < (int)mapArray.size(); j++) {
-                pHelperWindow->setGamePixelColor(i, (int)mapArray.size() - 1 - j, map.getTileColor(i, j));
+                pHelperWindow->setGamePixelColor(i, j, map.getTileColor(i, j));
             }
         }
 
-        pHelperWindow->setGamePixelColor((int)player.getX(), (int)mapArray.size() - 1 - (int)player.getY(), sf::Color::Blue);
+        pHelperWindow->setGamePixelColor((int)player.getX(), (int)player.getY(), sf::Color::Blue);
     }
 
     void loadNewMaze() {
@@ -575,7 +575,6 @@ int main() {
 
     options.open("settings.txt") ;
     options >> temp >> LENGTH >> temp >> HEIGHT >> temp >> SCALE >> temp >> MAZE_WIDTH >> temp >> MAZE_HEIGHT;
-    std::cout << LENGTH;
 
     options.close();
 
