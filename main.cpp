@@ -204,6 +204,7 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3;               // Set entrance;
 
+        // setWallTexture("realistic_wall.ppm");
         setWallTexture("myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
         setEntranceTexture("entranceTextureP3.ppm");
         setExitTexture("exitTextureP3.ppm");
@@ -432,6 +433,7 @@ public:
         map = Map(maze_x_starting_size, maze_y_starting_size);
 
         sky = Texture("skyTexture2P3.ppm");
+        // sky = Texture("realistic_sky.ppm");
 
         helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
     }
