@@ -113,17 +113,16 @@ public:
     }
 
     sf::Color getTileColor(int x, int y) {
-        switch (map[y][x])
-        {
+        switch (map[y][x]) {
         case 1:
             return sf::Color::Black;
-        
+
         case 2:
             return sf::Color::Green;
 
         case 3:
             return sf::Color::Yellow;
-        
+
         default:
             return sf::Color::White;
         }
@@ -190,7 +189,7 @@ public:
     Map(int size_x, int size_y) {
         if (size_x % 2 == 0 || size_y % 2 == 0)
             throw std::invalid_argument("size_x and size_y must be odd");
-        
+
         map.clear();
         map.push_back(std::vector<int>((size_t)size_x + 2, 1));
         for (int i = 1; i < size_y + 1; i++) {
@@ -201,7 +200,7 @@ public:
 
         generateMaze(1, 1, size_x, size_y);
         map[size_y + 1][size_x] = 2; // Set exit.
-        map[0][1] = 3; // Set entrance;
+        map[0][1] = 3;               // Set entrance;
 
         setWallTexture("myTexture4.ppm");
         setEntranceTexture("entranceTextureP3.ppm");
@@ -227,10 +226,6 @@ class Window {
     sf::VertexArray pixels;
     int scaleModifier;
     bool visibility = true;
-
-    bool isEqualFloat(float a, float b) {
-        return fabsf(a - b) < 10e-10;
-    }
 
 public:
     Window(size_t length, size_t height, int scale, std::string title) {
@@ -276,30 +271,6 @@ public:
         }
     }
 
-    // Draw line between two points.
-    void drawLine(float x1, float y1, float x2, float y2, const sf::Color &color) {
-        // todo handle different orders of pionts
-        float incriment, x, y;
-
-        if (!isEqualFloat(x1, x2)) {
-            incriment = (y2 - y1) / (x2 - x1);
-            y = y1;
-            for (x = x1; x <= x2; x++) {
-                setGamePixelColor((int)x, (int)y, color);
-                y += incriment;
-            }
-        }
-
-        if (!isEqualFloat(y1, y2)) {
-            x = x1;
-            incriment = (x2 - x1) / (y2 - y1);
-            for (y = y1; y <= y2; y++) {
-                setGamePixelColor((int)x, (int)y, color);
-                x += incriment;
-            }
-        }
-    }
-
     // Draw a vertical line.
     void drawVericalLine(int y1, int y2, int x, const sf::Color &color) {
         if (y1 > y2) std::swap(y1, y2);
@@ -339,7 +310,7 @@ public:
                 pRenderWindow->close();
         }
 
-        pRenderWindow->clear();
+        // pRenderWindow->clear();
 
         pRenderWindow->draw(pixels);
 
@@ -370,9 +341,9 @@ public:
     }
 
     float getX() { return x; }
-    void setX(float newX) {x = newX;}
+    void setX(float newX) { x = newX; }
     float getY() { return y; }
-    void setY(float newY) {y = newY;}
+    void setY(float newY) { y = newY; }
     float getAngle() { return angle; }
 
     Player(float start_x, float start_y, float start_angle) {
@@ -394,17 +365,17 @@ private:
         if (!map[(int)new_y][(int)new_x]) {
             x = new_x;
             y = new_y;
-        } else if (!map[(int)y][(int)new_x]){
-           x = new_x;
-        } else if (!map[(int)new_y][(int)x]){
-           y = new_y;
+        } else if (!map[(int)y][(int)new_x]) { // Slide on walls instead of stopping
+            x = new_x;
+        } else if (!map[(int)new_y][(int)x]) {
+            y = new_y;
         }
     }
 
 public:
     void movement(float deltaTime, const std::vector<std::vector<int>> &map) {
-        std::cout << angle << "\n";
-        // DeltaTime ensures similar real time player speed with different framerates.
+        // std::cout << angle << "\n";
+        // DeltaTime ensures similar real time player speed between different framerates.
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
             moveRelative(speed * deltaTime, 0, map);
         }
@@ -426,8 +397,10 @@ public:
             }
         }
 
-        while(angle > 360) angle -= 360;
-        while(angle < 0) angle += 360;
+        while (angle > 360)
+            angle -= 360;
+        while (angle < 0)
+            angle += 360;
     }
 };
 
@@ -435,26 +408,26 @@ public:
 class Game {
     Window *pWindow;
     Player player;
-    size_t LENGTH, HEIGHT;
-    int fov = 60, maze_x, maze_y, helperWindowScale;
+    size_t gameLength, gameHeight, trueLength, trueHeight;
+    int fov = 60, helperWindowScale;
     unsigned int rayCastingPrecision = 64;
     Map map;
     Texture sky;
     bool helperVisibility = false;
 
 public:
-    Game(size_t length, size_t height, int scale, int maze_x_size, int maze_y_size) {
-        LENGTH = length / scale;
-        HEIGHT = height / scale;
-        pWindow = new Window(LENGTH, HEIGHT, scale, "Maze finder");
-        maze_x = maze_x_size;
-        maze_y = maze_y_size;
+    Game(size_t length, size_t height, int scale, int maze_x_starting_size, int maze_y_starting_size) {
+        trueLength = length;
+        trueHeight = height;
+        gameLength = length / scale;
+        gameHeight = height / scale;
+        pWindow = new Window(gameLength, gameHeight, scale, "Maze finder");
 
-        map = Map(maze_x, maze_y);
-        // map.print();
 
-        sky = Texture("testTexture.ppm");        
-        
+        map = Map(maze_x_starting_size, maze_y_starting_size);
+
+        sky = Texture("testTexture.ppm");
+
         helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
     }
 
@@ -468,17 +441,18 @@ public:
         // Rays range from playerAngle - (fov / 2) to playerAngle + (fov / 2)
         float rayAngle = playerAngle - (float)fov / 2.f;
 
-        float incrimentAngle = (float)fov / (float)LENGTH;
+        float incrimentAngle = (float)fov / (float)gameLength;
 
-        float halfHeight = (float)HEIGHT / 2.f;
+        float halfHeight = (float)gameHeight / 2.f;
 
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
-        for (unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
+        for (unsigned int rayCount = 0; rayCount < gameLength; rayCount++) {
             // Normalise rayAngle.
-            while(rayAngle > 360) rayAngle -= 360;
-            while(rayAngle < 0) rayAngle += 360;
-
+            while (rayAngle > 360)
+                rayAngle -= 360;
+            while (rayAngle < 0)
+                rayAngle += 360;
 
             float rayX = playerX, rayY = playerY; // Ray starts from the player.
 
@@ -487,10 +461,14 @@ public:
             float raySinIncrement = cosf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
 
             // Wall collision check.
-            bool hitWall = false;
+            bool hitWall = false, hitFromX;
             while (!hitWall) {
+                // Necessary for calculating texture orientation.
+                hitFromX = mapArray[(int)rayY][(int)(rayX + rayCosIncrement)];
+
                 rayX += rayCosIncrement;
                 rayY += raySinIncrement;
+
                 hitWall = mapArray[(int)rayY][(int)rayX];
             }
 
@@ -501,7 +479,6 @@ public:
             distanceToWall *= cosf(degreesToRadians(rayAngle - playerAngle));
 
             float wallHeight = halfHeight / distanceToWall;
-
 
             // Load wall texture (todo - get from map class)
             Texture &t = map.getTexture((int)rayX, (int)rayY);
@@ -514,17 +491,15 @@ public:
 
             int textureVerticalSlipIdx;
             int textureWidth = (int)t.getWidth();
-            if (fabsf(rayX - roundf(rayX)) > fabsf(rayY - roundf(rayY))) {
+            if (!hitFromX) {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayX) % textureWidth;
                 // Flip the textures when necessary.
-                if(roundf(rayY) > floorf(rayY)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
+                if (roundf(rayY) > floorf(rayY)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
             } else {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayY) % textureWidth;
                 // Flip the textures when necessary.
-                if(roundf(rayX) <= floorf(rayX)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
+                if (roundf(rayX) <= floorf(rayX)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
             }
-
-            
 
             // if(45 < rayAngle && rayAngle < 135) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
 
@@ -533,8 +508,8 @@ public:
 
             // Draw sky.
             // pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color(0, 199, 199, 255));
-            pWindow->drawTextureVerticalLine(rayCount, halfHeight, (float)HEIGHT + 1, (int)((float)sky.getWidth() * (rayAngle / 360.f)) % (int)sky.getWidth(), sky);
-            
+            pWindow->drawTextureVerticalLine(rayCount, halfHeight, (float)gameHeight + 1, (int)((float)sky.getWidth() * (rayAngle / 360.f)) % (int)sky.getWidth(), sky);
+
             // Draw untextured walls.
             // pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(100, 62, 10, 100));
 
@@ -546,19 +521,19 @@ public:
     }
 
     void renderHelperWindowPixel(int x, int y, const sf::Color &color) {
-        for(int i = 0; i < helperWindowScale; i++) {
-            for(int j = 0; j < helperWindowScale; j++) {
+        for (int i = 0; i < helperWindowScale; i++) {
+            for (int j = 0; j < helperWindowScale; j++) {
                 pWindow->setTruePixelColor(helperWindowScale * x + i, helperWindowScale * y + j, color);
             }
         }
     }
 
     void renderHelperWindow() {
-        if(!helperVisibility) return;
+        if (!helperVisibility) return;
         const std::vector<std::vector<int>> &mapArray = map.getMap();
 
-        for(int i = 0; i < (int)mapArray.front().size(); i++) {
-            for(int j = 0; j < (int)mapArray.size(); j++) {
+        for (int i = 0; i < (int)mapArray.front().size(); i++) {
+            for (int j = 0; j < (int)mapArray.size(); j++) {
                 renderHelperWindowPixel(i, j, map.getTileColor(i, j));
             }
         }
@@ -567,9 +542,11 @@ public:
     }
 
     void loadNewMaze() {
-        map = Map(maze_x, maze_y);
+        // Includes padding, so the size increases
+        map = Map((int)map.getMap().front().size(), (int)map.getMap().size());
         player.setX(1.5f);
         player.setY(1.5f);
+        helperWindowScale = std::max((int)std::min(trueLength / 2 / map.getMap().front().size(), trueHeight / 2 / map.getMap().size()), 1); // scale to main window.
     }
 
     void play() {
@@ -577,6 +554,7 @@ public:
         std::chrono::_V2::system_clock::time_point endOfPrevLoop = std::chrono::high_resolution_clock::now();
         std::chrono::_V2::system_clock::time_point spacePress = std::chrono::high_resolution_clock::now();
         const std::vector<std::vector<int>> &mapArray = map.getMap();
+        int maze_x = (int)map.getMap().front().size() - 2, maze_y = (int)map.getMap().size() - 2;
 
         // Game loop.
         while (pWindow->isOpen()) {
@@ -589,14 +567,19 @@ public:
             // Provide time delta between frames
             player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
 
-            if(player.getX() >= (float)maze_x && player.getY() >= (float)maze_y + 0.7f)
-                loadNewMaze();
+            std::cout << maze_x << " " << maze_y << " " << player.getX() << " " << player.getY() << std::endl;
 
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - spacePress).count() > 300) {
+            if (player.getX() >= (float)maze_x && player.getY() >= (float)maze_y + 0.7f) {
+                loadNewMaze();
+                maze_x += 2;
+                maze_y += 2;
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - spacePress).count() > 300) {
                 helperVisibility = !helperVisibility;
                 spacePress = std::chrono::high_resolution_clock::now();
             }
-            
+
             endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
     }
@@ -612,7 +595,7 @@ int main() {
     size_t LENGTH = 1280, HEIGHT = 720, SCALE = 3, MAZE_WIDTH = 11, MAZE_HEIGHT = 11;
     std::string temp;
 
-    options.open("settings.txt") ;
+    options.open("settings.txt");
     options >> temp >> LENGTH >> temp >> HEIGHT >> temp >> SCALE >> temp >> MAZE_WIDTH >> temp >> MAZE_HEIGHT;
 
     options.close();
