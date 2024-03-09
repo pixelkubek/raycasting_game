@@ -14,6 +14,9 @@ class Texture {
     std::vector<std::vector<sf::Color>> colorMap;
 
 public:
+    Texture() {
+        colorMap.push_back({sf::Color::Black});
+    }
     // Load texture from P3 .ppm file.
     Texture(std::string filePath) {
         std::ifstream file;
@@ -55,6 +58,48 @@ public:
     const std::vector<std::vector<sf::Color>> &getColorMap() {
         return colorMap;
     }
+};
+
+// Class representing a game map geometry, textures and marked places
+class Map {
+    std::vector<std::vector<int>> map;
+    Texture wallTexture, deafultTexture;
+
+public:
+    Map() {
+        map = {
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 0, 1, 1, 0, 1, 0, 0, 1},
+            {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
+            {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
+            {1, 0, 0, 1, 0, 2, 1, 0, 0, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        };
+        wallTexture = Texture("myTexture4.ppm");
+    }
+
+    void setWallTexture(std::string filePath) {
+        wallTexture = Texture(filePath);
+    }
+
+    Texture &getTexture(int x, int y) {
+        switch (map[y][x]) {
+        case 1:
+            return wallTexture;
+        
+        case 2:
+            return deafultTexture;
+
+        default:
+            return deafultTexture;
+        }
+    }
+
+    const std::vector<std::vector<int>> &getMap() { return map; }
 };
 
 // Rendering window class.
@@ -243,7 +288,7 @@ class Game {
     size_t LENGTH, HEIGHT;
     int fov = 60;
     unsigned int rayCastingPrecision = 64;
-    std::vector<std::vector<int>> map;
+    Map map;
 
 public:
     Game(size_t length, size_t height, int scale) {
@@ -251,19 +296,6 @@ public:
         HEIGHT = height / scale;
         pWindow = new Window(LENGTH, HEIGHT, scale, "Maze finder");
         pPlayer = new Player(8, 2, 0);
-
-        map = {
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 0, 0, 1, 1, 0, 1, 0, 0, 1},
-            {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
-            {1, 0, 0, 1, 0, 0, 1, 0, 0, 1},
-            {1, 0, 0, 1, 0, 1, 1, 0, 0, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        };
     }
 
     void renderFrameToBuffer() {
@@ -280,6 +312,8 @@ public:
 
         float halfHeight = (float)HEIGHT / 2.f;
 
+        const std::vector<std::vector<int>> &mapArray = map.getMap();
+
         for (unsigned int rayCount = 0; rayCount < LENGTH; rayCount++) {
             float rayX = playerX, rayY = playerY; // Ray starts from the player.
 
@@ -292,7 +326,7 @@ public:
             while (!hitWall) {
                 rayX += rayCosIncrement;
                 rayY += raySinIncrement;
-                hitWall = map[(int)rayY][(int)rayX];
+                hitWall = mapArray[(int)rayY][(int)rayX];
             }
 
             // Calculate distance to wall using Pythagoreas theorem
@@ -304,7 +338,7 @@ public:
             float wallHeight = halfHeight / distanceToWall;
 
             // Load wall texture (todo - get from map class)
-            Texture t("myTexture4.ppm");
+            Texture &t = map.getTexture((int)rayX, (int)rayY);
 
             // Calculate which vertical strip of the texture to use
             // By multiplying a coordinate by texture width, we get it's equivalent
@@ -314,11 +348,10 @@ public:
 
             int textureVerticalSlipIdx;
             int textureWidth = (int)t.getWidth();
-            if(fabsf(rayX - roundf(rayX)) > fabsf(rayY - roundf(rayY))) {
+            if (fabsf(rayX - roundf(rayX)) > fabsf(rayY - roundf(rayY))) {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayX) % textureWidth;
             } else {
                 textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayY) % textureWidth;
-
             }
 
             // Draw floor.
@@ -340,6 +373,7 @@ public:
     void play() {
         // Used for calculating deltaTime
         std::chrono::_V2::system_clock::time_point endOfPrevLoop = std::chrono::high_resolution_clock::now();
+        const std::vector<std::vector<int>> &mapArray = map.getMap();
 
         // Game loop.
         while (pWindow->isOpen()) {
@@ -347,8 +381,8 @@ public:
             pWindow->display(); // Display buffer.
 
             // Provide time delta between frames
-            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), map);
-            
+            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
+
             endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
     }
