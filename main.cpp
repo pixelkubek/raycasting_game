@@ -301,7 +301,7 @@ public:
             // Fisheye fix approximation.
             distanceToWall *= cosf(degreesToRadians(rayAngle - playerAngle));
 
-            float wallHeight = (halfHeight / distanceToWall);
+            float wallHeight = halfHeight / distanceToWall;
 
             // Load wall texture (todo - get from map class)
             Texture t("myTexture4.ppm");
@@ -315,9 +315,9 @@ public:
             int textureVerticalSlipIdx;
             int textureWidth = (int)t.getWidth();
             if(fabsf(rayX - roundf(rayX)) > fabsf(rayY - roundf(rayY))) {
-                textureVerticalSlipIdx = (int)((float)textureWidth * rayX) % textureWidth;
+                textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayX) % textureWidth;
             } else {
-                textureVerticalSlipIdx = (int)((float)textureWidth * rayY) % textureWidth;
+                textureVerticalSlipIdx = (int)roundf((float)textureWidth * rayY) % textureWidth;
 
             }
 
