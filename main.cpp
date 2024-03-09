@@ -308,6 +308,8 @@ public:
         while (pRenderWindow->pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 pRenderWindow->close();
+            else if (event.type == sf::Event::Resized)
+                pRenderWindow->clear();
         }
 
         // pRenderWindow->clear();
@@ -322,6 +324,7 @@ public:
         visibility = !visibility;
         // if(visibility) pRenderWindow->requestFocus();
     }
+
 
     ~Window() {
         delete pRenderWindow;
