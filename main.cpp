@@ -93,9 +93,9 @@ public:
             {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
         };
 
-        setWallTexture("myTexture3.ppm");
-        setEntranceTexture("entranceTextureP3.ppm");
-        setExitTexture("exitTextureP3.ppm");
+        setWallTexture("./textures/myTexture3.ppm");
+        setEntranceTexture("./textures/entranceTextureP3.ppm");
+        setExitTexture("./textures/exitTextureP3.ppm");
     }
 
     Texture &getTexture(int x, int y) {
@@ -204,10 +204,10 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3;               // Set entrance;
 
-        // setWallTexture("realistic_wall.ppm");
-        setWallTexture("myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
-        setEntranceTexture("entranceTextureP3.ppm");
-        setExitTexture("exitTextureP3.ppm");
+        // setWallTexture("./textures/starry_night.ppm");
+        setWallTexture("./textures/myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
+        setEntranceTexture("./textures/entranceTextureP3.ppm");
+        setExitTexture("./textures/exitTextureP3.ppm");
     }
 
     const std::vector<std::vector<int>> &getMap() { return map; }
@@ -432,8 +432,8 @@ public:
 
         map = Map(maze_x_starting_size, maze_y_starting_size);
 
-        sky = Texture("skyTexture2P3.ppm");
-        // sky = Texture("realistic_sky.ppm");
+        sky = Texture("./textures/skyTexture2P3.ppm");
+        // sky = Texture("./textures/starry_night_sky.ppm");
 
         helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
     }
@@ -558,7 +558,7 @@ public:
         player.setX(1.5f);
         player.setY(1.5f);
         helperWindowScale = std::max((int)std::min(trueLength / 2 / map.getMap().front().size(), trueHeight / 2 / map.getMap().size()), 1); // scale to main window.
-        changeSkyTexture("skyTexture" + std::to_string(rand() % 2 + 1) + "P3.ppm");
+        changeSkyTexture("./textures/skyTexture" + std::to_string(rand() % 2 + 1) + "P3.ppm");
     }
 
     void play() {
