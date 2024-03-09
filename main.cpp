@@ -106,27 +106,25 @@ private:
     void generateMaze(int x1, int y1, int x2, int y2) {
         printf("%i %i %i %i\n", x1, y1, x2, y2);
         int xRange = x2 - x1, yRange = y2 - y1;
-        if(xRange <= 0 || yRange <= 0) return; // Recursion exit point
+        if (xRange <= 0 || yRange <= 0) return; // Recursion exit point
 
-        if(xRange <= yRange) {
+        if (xRange <= yRange) {
             // Find and odd y coord to put wall
             int wallPosition;
-            do
-            {
+            do {
                 wallPosition = randInRange(y1, y2);
             } while (wallPosition % 2 != 0);
 
             // Fill the wall
-            for(int i = x1; i <= x2; i++) {
+            for (int i = x1; i <= x2; i++) {
                 map[wallPosition][i] = 1;
             }
 
             int holePosition;
-            do
-            {
+            do {
                 holePosition = randInRange(x1, x2);
             } while (holePosition % 2 == 0);
-            
+
             map[wallPosition][holePosition] = 0;
 
             generateMaze(x1, y1, x2, wallPosition - 1);
@@ -134,42 +132,44 @@ private:
         } else {
             // Find and odd x coord to put wall
             int wallPosition;
-            do
-            {
+            do {
                 wallPosition = randInRange(x1, x2);
             } while (wallPosition % 2 != 0);
 
             // Fill the wall
-            for(int i = y1; i <= y2; i++) {
+            for (int i = y1; i <= y2; i++) {
                 map[i][wallPosition] = 1;
             }
 
             int holePosition;
-            do
-            {
+            do {
                 holePosition = randInRange(y1, y2);
             } while (holePosition % 2 == 0);
-            
+
             map[holePosition][wallPosition] = 0;
 
             generateMaze(x1, y1, wallPosition - 1, y2);
             generateMaze(wallPosition + 1, y1, x2, y2);
-
         }
     }
 
 public:
+    // size_x and size_y MUST be odd
     Map(int size_x, int size_y) {
-        // Must be odd
+        if (size_x % 2 == 0 || size_y % 2 == 0)
+            throw std::invalid_argument("size_x and size_y must be odd");
+        
         map.clear();
         map.push_back(std::vector<int>((size_t)size_x + 2, 1));
-        for(int i = 1; i < size_y + 1; i++) {
+        for (int i = 1; i < size_y + 1; i++) {
             map.push_back(std::vector<int>((size_t)size_x + 2, 0));
             map.back().front() = map.back().back() = 1;
         }
         map.push_back(std::vector<int>((size_t)size_x + 2, 1));
 
         generateMaze(1, 1, size_x, size_y);
+        map[size_y][size_x] = 2; // Set exit.
+
         setWallTexture("myTexture4.ppm");
     }
 
@@ -178,7 +178,7 @@ public:
     void print() {
         for (std::vector<int> line : map) {
             for (int val : line) {
-                std::cout << val << "\t";
+                std::cout << val;
             }
             std::cout << std::endl;
         }
@@ -312,6 +312,13 @@ class Player {
     float x, y, angle, speed = 0.007f, horizontalSpeed = 0.004f, angularSpeed = 0.13f;
 
 public:
+    Player() {
+        // Maze generation algorithm ensures these coordinates are free
+        x = 1.5f;
+        y = 1.5f;
+        angle = 0.f;
+    }
+
     float getX() { return x; }
     float getY() { return y; }
     float getAngle() { return angle; }
@@ -367,7 +374,7 @@ public:
 // Class representing game logic.
 class Game {
     Window *pWindow;
-    Player *pPlayer;
+    Player player;
     size_t LENGTH, HEIGHT;
     int fov = 60;
     unsigned int rayCastingPrecision = 64;
@@ -378,8 +385,7 @@ public:
         LENGTH = length / scale;
         HEIGHT = height / scale;
         pWindow = new Window(LENGTH, HEIGHT, scale, "Maze finder");
-        pPlayer = new Player(8, 2, 0);
-        map = Map(11, 11);
+        map = Map(3, 3);
         map.print();
     }
 
@@ -388,7 +394,7 @@ public:
         // until it hits a wall, then calculate necessary wall height
 
         // Use getters only once
-        float playerX = pPlayer->getX(), playerY = pPlayer->getY(), playerAngle = pPlayer->getAngle();
+        float playerX = player.getX(), playerY = player.getY(), playerAngle = player.getAngle();
 
         // Rays range from playerAngle - (fov / 2) to playerAngle + (fov / 2)
         float rayAngle = playerAngle - (float)fov / 2.f;
@@ -466,7 +472,7 @@ public:
             pWindow->display(); // Display buffer.
 
             // Provide time delta between frames
-            pPlayer->movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
+            player.movement((float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - endOfPrevLoop).count(), mapArray);
 
             endOfPrevLoop = std::chrono::high_resolution_clock::now();
         }
@@ -474,7 +480,6 @@ public:
 
     ~Game() {
         delete pWindow;
-        delete pPlayer;
     }
 };
 
