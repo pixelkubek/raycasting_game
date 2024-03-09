@@ -266,7 +266,7 @@ public:
             distanceToWall *= cosf(degreesToRadians(rayAngle - pPlayer->getAngle()));
             float wallHeight = (halfHeight / distanceToWall);
 
-            Texture t("texture2.ppm");
+            Texture t("myTexture4.ppm");
             int texturePositionX = (int)((float)t.getWidth() * (rayX + rayY)) % (int)t.getWidth();
             // One of rayX and rayY is close to edge
 
@@ -274,8 +274,8 @@ public:
             // pWindow->drawLine((float)rayCount, 0, (float)rayCount, halfHeight, sf::Color::Green);
             // pWindow->drawLine((float)rayCount, halfHeight, (float)rayCount, (float)HEIGHT, sf::Color::Blue);
             // pWindow->drawLine((float)rayCount, halfHeight - wallHeight, (float)rayCount, halfHeight + wallHeight, sf::Color(100, 62, 10, 100));
-            pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color::Green);
-            pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color::Blue);
+            pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color(121, 121, 121, 255));
+            pWindow->drawVericalLine((int)HEIGHT, (int)halfHeight, rayCount, sf::Color(0, 199, 199, 255));
             pWindow->drawVericalLine((int)(halfHeight - wallHeight), (int)(halfHeight + wallHeight), rayCount, sf::Color(100, 62, 10, 100));
             pWindow->drawTextureVerticalLine(rayCount, wallHeight, texturePositionX, t);
             rayAngle += incrimentAngle;
@@ -302,7 +302,7 @@ public:
 int main() {
     size_t LENGTH = 1280, HEIGHT = 720;
 
-    Game game(LENGTH, HEIGHT, 2);
+    Game game(LENGTH, HEIGHT, 3);
     game.play();
 
     return 0;
