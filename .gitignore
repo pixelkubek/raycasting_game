@@ -5,3 +5,6 @@ generate_ppm.py
 texture.png
 KcolorPalette
 myTexture.ppm
+*.e
+mazetest
+mazetest.cpp
