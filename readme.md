@@ -21,8 +21,9 @@ Dependency: [SFML](https://www.sfml-dev.org/)
 
 Set settings in the [settings.txt](./settings.txt) and run
 ```bash
-cd src && make main && mv main ../main
+cd src && make main
 ```
+To run the game, execute main in the /src directory
 
 ## Controls
 - up / down - forwards / backwards

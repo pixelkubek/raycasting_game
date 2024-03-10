@@ -16,3 +16,5 @@ Textures/starry_night.jpg
 textures/starry_night_sky.jpg
 textures/starry_night.jpg
 *.o
+.vscode/settings.json
+.vscode/tasks.json

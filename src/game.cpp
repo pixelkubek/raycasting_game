@@ -11,8 +11,8 @@ Game::Game(size_t length, size_t height, int scale, int maze_x_starting_size, in
     gameHeight = height / scale;
     pWindow = new Window(gameLength, gameHeight, scale, "Maze finder");
 
-
-    map = Map(maze_x_starting_size, maze_y_starting_size);
+    // Ensure odd dimensions
+    map = Map(maze_x_starting_size + 1 - (maze_x_starting_size % 2), maze_y_starting_size + 1 - (maze_y_starting_size % 2));
 
     sky = Texture("../textures/skyTexture2P3.ppm");
     // sky = Texture("../textures/starry_night_sky.ppm");
