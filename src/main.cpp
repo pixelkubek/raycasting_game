@@ -7,59 +7,11 @@
 #include <vector>
 #include <string>
 
+#include "texture.h"
+
 float degreesToRadians(float degrees) {
     return degrees * (float)M_PI / 180.f;
 }
-
-class Texture {
-    std::vector<std::vector<sf::Color>> colorMap;
-
-public:
-    Texture() {
-        colorMap.push_back({sf::Color::Black});
-    }
-    // Load texture from P3 .ppm file.
-    Texture(std::string filePath) {
-        std::ifstream file;
-        file.open(filePath);
-
-        int width, height;
-        std::string temp;
-        unsigned int r, g, b;
-
-        // Ignore P3 and max range.
-        file >> temp >> width >> height >> temp;
-
-        // Load rgb values into 2d color vector.
-        for (int i = 0; i < height; i++) {
-            std::vector<sf::Color> currentLine;
-            for (int j = 0; j < width; j++) {
-                file >> r >> g >> b;
-                currentLine.push_back(sf::Color((unsigned char)r, (unsigned char)g, (unsigned char)b, 255));
-            }
-            colorMap.push_back(currentLine);
-            currentLine.clear();
-        }
-        file.close();
-    }
-
-    // Print r, g, b values of colors in array
-    void print() {
-        std::cout << colorMap.size() << std::endl;
-        for (std::vector<sf::Color> line : colorMap) {
-            for (sf::Color color : line) {
-                std::cout << "(" << (unsigned int)color.r << " " << (unsigned int)color.g << " " << (unsigned int)color.b << ")\t";
-            }
-            std::cout << std::endl;
-        }
-    }
-
-    size_t getHeight() { return colorMap.size(); }
-    size_t getWidth() { return colorMap.front().size(); }
-    const std::vector<std::vector<sf::Color>> &getColorMap() {
-        return colorMap;
-    }
-};
 
 // Class representing a game map geometry, textures and marked places
 class Map {
@@ -93,9 +45,9 @@ public:
             {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
         };
 
-        setWallTexture("./textures/myTexture3.ppm");
-        setEntranceTexture("./textures/entranceTextureP3.ppm");
-        setExitTexture("./textures/exitTextureP3.ppm");
+        setWallTexture("../textures/myTexture3.ppm");
+        setEntranceTexture("../textures/entranceTextureP3.ppm");
+        setExitTexture("../textures/exitTextureP3.ppm");
     }
 
     Texture &getTexture(int x, int y) {
@@ -204,10 +156,10 @@ public:
         map[size_y + 1][size_x] = 2; // Set exit.
         map[0][1] = 3;               // Set entrance;
 
-        // setWallTexture("./textures/starry_night.ppm");
-        setWallTexture("./textures/myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
-        setEntranceTexture("./textures/entranceTextureP3.ppm");
-        setExitTexture("./textures/exitTextureP3.ppm");
+        // setWallTexture("../textures/starry_night.ppm");
+        setWallTexture("../textures/myTexture" + std::to_string(rand() % 3 + 1) + ".ppm");
+        setEntranceTexture("../textures/entranceTextureP3.ppm");
+        setExitTexture("../textures/exitTextureP3.ppm");
     }
 
     const std::vector<std::vector<int>> &getMap() { return map; }
@@ -432,8 +384,8 @@ public:
 
         map = Map(maze_x_starting_size, maze_y_starting_size);
 
-        sky = Texture("./textures/skyTexture2P3.ppm");
-        // sky = Texture("./textures/starry_night_sky.ppm");
+        sky = Texture("../textures/skyTexture2P3.ppm");
+        // sky = Texture("../textures/starry_night_sky.ppm");
 
         helperWindowScale = std::max((int)std::min(length / 2 / map.getMap().front().size(), height / 2 / map.getMap().size()), 1); // scale to main window.
     }
@@ -558,7 +510,7 @@ public:
         player.setX(1.5f);
         player.setY(1.5f);
         helperWindowScale = std::max((int)std::min(trueLength / 2 / map.getMap().front().size(), trueHeight / 2 / map.getMap().size()), 1); // scale to main window.
-        changeSkyTexture("./textures/skyTexture" + std::to_string(rand() % 2 + 1) + "P3.ppm");
+        changeSkyTexture("../textures/skyTexture" + std::to_string(rand() % 2 + 1) + "P3.ppm");
     }
 
     void play() {
@@ -601,12 +553,13 @@ public:
 };
 
 int main() {
+    std::cout << "works";
     srand((unsigned int)time(NULL));
     std::ifstream options;
     size_t LENGTH = 1280, HEIGHT = 720, SCALE = 3, MAZE_WIDTH = 11, MAZE_HEIGHT = 11;
     std::string temp;
 
-    options.open("settings.txt");
+    options.open("../settings.txt");
     options >> temp >> LENGTH >> temp >> HEIGHT >> temp >> SCALE >> temp >> MAZE_WIDTH >> temp >> MAZE_HEIGHT;
 
     options.close();
