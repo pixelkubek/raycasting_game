@@ -50,17 +50,19 @@ void Game::renderFrameToBuffer() {
         float rayX = playerX, rayY = playerY; // Ray starts from the player.
 
         // Calculate ray increments in x, y coordinates
-        float rayCosIncrement = sinf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
-        float raySinIncrement = cosf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
+        float rayCosIncrement = cosf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
+        float raySinIncrement = sinf(degreesToRadians(rayAngle)) / (float)rayCastingPrecision;
 
         // Wall collision check.
         bool hitWall = false, hitFromX;
         while (!hitWall) {
             // Necessary for calculating texture orientation.
-            hitFromX = mapArray[(int)rayY][(int)(rayX + rayCosIncrement)];
+            hitFromX = mapArray[(int)rayY][(int)(rayX + raySinIncrement)];
 
-            rayX += rayCosIncrement;
-            rayY += raySinIncrement;
+            // 0 degrees is positive y, 90 degrees positive x
+            // so the angle to x if 90 - playerAngle, which flips sin and cos
+            rayX += raySinIncrement;
+            rayY += rayCosIncrement;
 
             hitWall = mapArray[(int)rayY][(int)rayX];
         }
@@ -68,12 +70,12 @@ void Game::renderFrameToBuffer() {
         // Calculate distance to wall using Pythagoreas theorem
         float distanceToWall = sqrtf(fabsf(playerX - rayX) * fabsf(playerX - rayX) + fabsf(playerY - rayY) * fabsf(playerY - rayY));
 
-        // Fisheye fix approximation.
+        // Fisheye fix, normalise to playerAngle vector
         distanceToWall *= cosf(degreesToRadians(rayAngle - playerAngle));
 
         float wallHeight = halfHeight / distanceToWall;
 
-        // Load wall texture (todo - get from map class)
+        // Load wall texture
         Texture &t = map.getTexture((int)rayX, (int)rayY);
 
         // Calculate which vertical strip of the texture to use
@@ -94,7 +96,6 @@ void Game::renderFrameToBuffer() {
             if (roundf(rayX) <= floorf(rayX)) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
         }
 
-        // if(45 < rayAngle && rayAngle < 135) textureVerticalSlipIdx = textureWidth - textureVerticalSlipIdx - 1;
 
         // Draw floor.
         pWindow->drawVericalLine(0, (int)halfHeight, rayCount, sf::Color(121, 121, 121, 255));

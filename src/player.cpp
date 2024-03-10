@@ -2,6 +2,7 @@
 
 #include<SFML/Graphics.hpp>
 #include<cmath>
+#include<iostream>
 
 Player::Player() {
     // Maze generation algorithm ensures these coordinates are free
@@ -42,7 +43,7 @@ void Player::moveRelative(float forwardDistance, float rightDistance, const std:
 }
 
 void Player::movement(float deltaTime, const std::vector<std::vector<int>> &map) {
-    // std::cout << angle << "\n";
+    // std::cout << angle << " " << x << " " << y << "\n";
     // DeltaTime ensures similar real time player speed between different framerates.
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
         moveRelative(speed * deltaTime, 0, map);

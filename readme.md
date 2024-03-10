@@ -1,5 +1,5 @@
 # Maze finder
-A 2,5d doom-like game about solving mazes. Made mainly as an exercise. Written in C++ using the SFML graphics library, however SFML is only used for keyboard access and setting the values of specific pixels, the rendering logic is written by myself based on [this tutorial](https://github.com/vinibiavatti1/RayCastingTutorial).
+A 2,5d doom-like game about solving mazes. Made as an exercise. Written in C++ using the SFML graphics library, however SFML is only used for keyboard access and setting the values of specific pixels, the rendering logic is written by myself based on [this tutorial](https://github.com/vinibiavatti1/RayCastingTutorial).
 
 ## Features
 ### 3d-like perspective

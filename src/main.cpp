@@ -9,7 +9,6 @@
 #include "game.h"
 
 int main() {
-    std::cout << "works";
     srand((unsigned int)time(NULL));
     std::ifstream options;
     size_t LENGTH = 1280, HEIGHT = 720, SCALE = 3, MAZE_WIDTH = 11, MAZE_HEIGHT = 11;
