@@ -1,3 +1,6 @@
+#ifndef textureH
+#define textureH
+
 #include<vector>
 #include<SFML/Graphics.hpp>
 
@@ -17,3 +20,4 @@ public:
     size_t getWidth();
     const std::vector<std::vector<sf::Color>> &getColorMap();
 };
+#endif

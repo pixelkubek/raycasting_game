@@ -1,7 +1,7 @@
-targets := $(wildcard *.o)
+objects = main.o texture.o map.o
 
-main : main.o texture.o
-	g++ @opcjeCpp ${targets} -o main -lsfml-graphics -lsfml-window -lsfml-system
+main : ${objects}
+	g++ @opcjeCpp ${objects} -o main -lsfml-graphics -lsfml-window -lsfml-system
 
 %.o: %.cpp
 	g++ @opcjeCpp $*.cpp -c

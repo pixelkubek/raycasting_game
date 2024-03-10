@@ -21,7 +21,7 @@ Dependency: [SFML](https://www.sfml-dev.org/)
 
 Set settings in the [settings.txt](./settings.txt) and run
 ```bash
-cd src && make main
+cd src && make main && mv main ../main
 ```
 
 ## Controls
