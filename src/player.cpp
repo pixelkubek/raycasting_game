@@ -3,10 +3,6 @@
 #include<SFML/Graphics.hpp>
 #include<cmath>
 
-float degreesToRadians(float degrees) {
-    return degrees * (float)M_PI / 180.f;
-}
-
 Player::Player() {
     // Maze generation algorithm ensures these coordinates are free
     x = 1.5f;
@@ -73,4 +69,8 @@ void Player::movement(float deltaTime, const std::vector<std::vector<int>> &map)
         angle -= 360;
     while (angle < 0)
         angle += 360;
+}
+
+float Player::degreesToRadians(float degrees) {
+    return degrees * (float)M_PI / 180.f;
 }

@@ -21,6 +21,7 @@ public:
 private:
     // move forward and right relative to current position and angle
     void moveRelative(float forwardDistance, float rightDistance, const std::vector<std::vector<int>> &map);
+    float degreesToRadians(float degrees);
 
 public:
     void movement(float deltaTime, const std::vector<std::vector<int>> &map);
